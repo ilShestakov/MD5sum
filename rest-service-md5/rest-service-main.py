@@ -1,24 +1,48 @@
-
-from flask import Flask, jsonify, abort, request, make_response, url_for
+import random
+import time
+from flask import Flask, request, abort, make_response, render_template, session, flash, redirect, \
+    url_for, jsonify
+#from flask_mail import Mail, Message
+#from flask_mail import Message, Mail
+from celery import Celery
 import requests
 import hashlib
 
+
 app = Flask(__name__)
+#app.config['SECRET_KEY'] = 'top-secret!'
+
+''' mail
+# Flask-Mail configuration
+app.config.update(dict(
+    DEBUG = True,
+    MAIL_SERVER = 'smtp.gmail.com',
+    MAIL_PORT = 587,
+    MAIL_USE_TLS = True,
+    MAIL_USE_SSL = False,
+    MAIL_USERNAME = 'shes7akov@gmail.com',
+    MAIL_PASSWORD = 'UsaidsmththatIvenever4gotten',
+))
+#app.config['MAIL_DEFAULT_SENDER'] = 'flask@example.com'
+'''
+
+app.config['CELERY_BROKER_URL'] = 'amqp://guest@localhost//'
+app.config['CELERY_RESULT_BACKEND'] = 'rpc://'
+
+
+#mail = Mail(app)
+
+celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
+celery.conf.update(app.config)
 
 @app.errorhandler(404)
 def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
 
-
 #TODO root_name
 root_name = "/md5/api/v1.0"
-
 #TODO check all response codes
-
 #TODO returns in POST and GET f-ns
-
-task_status = {u"none", u"running", u"done", u"failed"}
-
 
 tasks = [
     {
@@ -30,8 +54,9 @@ tasks = [
     }
 ] #TODO db
 
+ID = []
 
-
+'''
 @app.route('/')
 @app.route('/nothing')
 def nothing():
@@ -40,7 +65,7 @@ def nothing():
 @app.route(root_name)
 def root():
     return "Hi!"
-
+'''
 
 def requests_test():
     r = requests.get('https://www.google.com/images/srpr/logo11w.png')
@@ -50,15 +75,7 @@ def requests_test():
         f.write(r.content)
     print("req_test here")
 
-
-#example
-# >>> curl -X POST -d "email=user@example.com&url=http://site.com/file.txt"
-# http://localhost:8000/submit
-#res: {"id":"0e4fac17-f367-4807-8c28-8a059a2f82ac"}
-
-#parametrs: url and email
-@app.route(root_name + '/submit', methods=['POST'])
-def create_task():
+def print_structure_test():
     # print(request.url_root)
     # !!!print(request.args)
     print(request.form)
@@ -66,63 +83,83 @@ def create_task():
     print(request.form.get('url'))
     print(request.form.get('url', 'no url'))
 
+
+@app.route(root_name + '/tasks', methods=['GET'])
+def get_tasks():
+    if len(tasks)== 0:
+        return jsonify({'ur tasks': 'nothing'})
+    return jsonify({'ur tasks': tasks})
+
+
+#parametrs: url and email
+@app.route(root_name + '/submit', methods=['POST'])
+def create_task():
     if request.form.get('url') is None:  # no url in user request data
         abort(400)  # bad request
 
-    url_for_r = request.form.get('url')
-    r_file = requests.get(url_for_r)  # file downloading
-    if r_file.status_code == 404: #TODO != 200 ?
-        print("404 in requesting file through url")
-        abort(404)
+    file_url = request.form.get('url')
 
-    print(r_file.status_code)
-
-
-    md5hash = hashlib.md5(r_file.content).hexdigest() #content is in bytes
+    res = md5_counting.delay(file_url)  # result!
 
 
     new_task = {
-        'id':  tasks[-1]['id'] + 1 if len(tasks) else 1,
-        'url': url_for_r,
-        'email': request.form.get('email', 'none'),
-        'status': u'done',
-        'md5': md5hash
+        'id': res.id,
+        'url': file_url,
+        'email': request.form.get(u'email', u'none'), #email or none
+        #'status': None, #dont know! #u'done' if res.ready() else u'running',
+        'md5': res.result
     }
 
     tasks.append(new_task)
-    # sent email TODO
 
-    return jsonify({'task':new_task}), 201  # created
+    return jsonify({'id':res.id}), 201  # created
 
 
-#>>> curl -X GET http://localhost:8000/check?id=0e4fac17-f367-
-#4807-8c28-8a059a2f82ac
-#{"status":"running"}
-#>>> curl -X GET http://localhost:8000/check?id=0e4fac17-f367-
-#4807-8c28-8a059a2f82ac
-#{"md5":"f4afe93ad799484b1d512cc20e93efd1","status":"done","url":"
-#http://site.com/file.txt"}
-#parametr: id
+
+@celery.task(bind=True)
+#For this task I've added a bind=True argument in the Celery decorator.
+# This instructs Celery to send a self argument to my function, which I can then use to record the status updates.
+def md5_counting(self, url):  #как то передать только урл
+    """Background task that runs a long function with progress reports."""
+
+    self.update_state(state = 'running')
+
+    #выкачиваем файл по урл
+    r_file = requests.get(url)  # file downloading
+    if r_file.status_code == 404:  # TODO != 200 ?
+        print("self failed")
+        self.update_state(state = 'failed')
+
+    md5hash = hashlib.md5(r_file.content).hexdigest()  # content is in bytes
+
+    #  # sent email TODO
+
+    self.update_state(state = 'done')
+
+    return md5hash
+
+
+# GET
 @app.route(root_name + "/check", methods=['GET'])
 def get_task():
-    #no id?
-    #task in process/ done / failed
-    #done - than return url and md5
     if request.args.get('id') is None:  # no id in user url request
         abort(400)  # bad request
 
-    print(request.args)
-    print(request.args.get('id', -1))
+    requested_id = request.args.get('id', -1) #TODO hmmm
 
-    requested_id = int(request.args.get('id', -1)) #TODO
+    print('requested id ', request.args.get('id', -1))
 
+    task = md5_counting.AsyncResult(requested_id)
+    return jsonify({"status": task.status})
+
+'''depricated
     for task in tasks:
-        if task['id'] == requested_id:
+        if task['id'] == requested_id: #TODO TYPES ??
             print("found")
-            return jsonify({'task': task})
+            return jsonify({'status': task['status']})
   #  print(request.args)
-    abort(404)
-
+    return jsonify({"status":"doesnt exist"})
+'''
 
 if __name__ == '__main__':
     app.run(debug=True)
