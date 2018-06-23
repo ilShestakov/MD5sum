@@ -26,9 +26,11 @@ app.config.update(dict(
 #app.config['MAIL_DEFAULT_SENDER'] = 'flask@example.com'
 '''
 
-app.config['CELERY_BROKER_URL'] = 'amqp://guest@localhost//'
-app.config['CELERY_RESULT_BACKEND'] = 'rpc://'
-
+app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
+app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
+# 'amqp://guest@localhost//'
+# 'rpc://'
+#redis://localhost:6379/0
 
 #mail = Mail(app)
 
@@ -150,7 +152,7 @@ def get_task():
     print('requested id ', request.args.get('id', -1))
 
     task = md5_counting.AsyncResult(requested_id)
-    return jsonify({"status": task.status})
+    return jsonify({"status": task.status, "md5": task.result})
 
 '''depricated
     for task in tasks:
