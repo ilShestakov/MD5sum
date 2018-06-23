@@ -21,7 +21,7 @@ app.config.update(dict(
     MAIL_USE_TLS = True,
     MAIL_USE_SSL = False,
     MAIL_USERNAME = 'shes7akov@gmail.com',
-    MAIL_PASSWORD = 'UsaidsmththatIvenever4gotten',
+    MAIL_PASSWORD = 'mypassword',
 ))
 #app.config['MAIL_DEFAULT_SENDER'] = 'flask@example.com'
 '''
