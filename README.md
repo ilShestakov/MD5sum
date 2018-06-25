@@ -18,33 +18,33 @@ Cервис возвращает пользователю состояние з�
 
 1. Клонируйте этот репозиторий.
 2. Создайте virtualenv и установите все данные из requirements.txt
-3. Откройте второе окно терминала и запустите локальный сервер Redis. Если вы используете Linux, то выполните 
+3. Откройте окно терминала и запустите локальный сервер Redis. Если вы используете Linux, то выполните 
 ```sh
-wget ```http://download.redis.io/redis-stable.tar.gz```
+wget http://download.redis.io/redis-stable.tar.gz
 tar xvzf redis-stable.tar.gz
 cd redis-stable
 make
 ```
-(подробности [здесь](https://redis.io/topics/quickstart)) 
+(подробности [здесь](https://redis.io/download) и [здесь](https://scaleyourcode.com/blog/article/3)) 
 Пользователям Windows необходимо скачать и запустить последнюю версию [отсюда](https://github.com/MicrosoftArchive/redis/releases)
-4. Откройте третье окно терминала. Запустите Celery worker venv/bin/celery -A app.celery_ worker --loglevel=info
-5. Запустите пакет app в исходном окне терминала: venv/bin/
+4. Откройте второе окно терминала. Запустите Celery worker из корня репозитория (MD5sum): celery -A app.celery_ worker --loglevel=info
+5. Запустите пакет app в третьем окне терминала: venv/bin/
   set FLASK_APP=rest-service-md5.py
   flask run
 
 
 ## Примеры использования:
 
-```>>> curl -X POST -d "email=user@example.com&url=http://site.com/file.txt" http://localhost:5000/submit```
+```>>> curl -X POST -d "email=user@example.com&url=http://site.com/file.txt" http://localhost:5000/submit
 
->{"id":"0e4fac17-f367-4807-8c28-8a059a2f82ac"}
+{"id":"0e4fac17-f367-4807-8c28-8a059a2f82ac"}
 
-```>>> curl -X GET http://localhost:5000/check?id=0e4fac17-f367-4807-8c28-8a059a2f82ac```
+>>> curl -X GET http://localhost:5000/check?id=0e4fac17-f367-4807-8c28-8a059a2f82ac
 
->{"status":"running"}
+{"status":"running"}
 
-```>>> curl -X GET http://localhost:5000/check?id=0e4fac17-f367-4807-8c28-8a059a2f82ac```
+>>> curl -X GET http://localhost:5000/check?id=0e4fac17-f367-4807-8c28-8a059a2f82ac
 
->{"md5":"f4afe93ad799484b1d512cc20e93efd1","status":"done","url":```"http://site.com/file.txt"```}
+{"md5":"f4afe93ad799484b1d512cc20e93efd1","status":"done","url":"http://site.com/file.txt"}```
 
 
