@@ -27,7 +27,9 @@ make
 ```
 (подробности [здесь](https://redis.io/download) и [здесь](https://scaleyourcode.com/blog/article/3)) 
 Пользователям Windows необходимо скачать и запустить последнюю версию [отсюда](https://github.com/MicrosoftArchive/redis/releases)
+
 4. Откройте второе окно терминала. Запустите Celery worker из корня репозитория (MD5sum): celery -A app.celery_ worker --loglevel=info
+
 5. Запустите пакет app в третьем окне терминала: venv/bin/
   set FLASK_APP=rest-service-md5.py
   flask run
