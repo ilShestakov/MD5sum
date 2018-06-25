@@ -17,8 +17,8 @@ app.config.update(dict(
     MAIL_PORT = 587,
     MAIL_USE_TLS = True,
     MAIL_USE_SSL = False,
-    MAIL_USERNAME = 'shes7akov@gmail.com',
-    MAIL_PASSWORD = 'Password',
+    MAIL_USERNAME = 'md5counting@gmail.com',
+    MAIL_PASSWORD = 'md5toyourhome',
 ))
 
 
@@ -36,12 +36,12 @@ mail = Mail(app)
 
 def index():
 
-    email = 'example@'
+    email = 'shes7akov@gmail.com'
     print('email:', email)
     #session['email'] = email
 
     # send the email
-    msg = Message("Доброго дня", sender = 'shes7akov@gmail.com', recipients=[email])
+    msg = Message("Доброго дня", sender = 'md5counting@gmail.com', recipients=[email])
 
     msg.body = "Вас Питон беспокоит"
 

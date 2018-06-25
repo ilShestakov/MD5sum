@@ -1,12 +1,14 @@
 from flask import Flask
-from celery import Celery
+from .config import Config
 
 flask = Flask(__name__)
-
-flask.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
-flask.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
-
-#celery = Celery(flask.name, broker=flask.config['CELERY_BROKER_URL'])
-#celery.conf.update(flask.config)
+flask.config.from_object(Config)
 
 from app import routes
+
+
+#  TODO
+#  raising requests exceptions!
+#  mailing is a next task in chain
+#  MemoryError Solution
+#

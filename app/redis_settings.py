@@ -1,15 +1,12 @@
-from flask import make_response, jsonify
 import urllib.parse
+from .config import Config
 from redis import StrictRedis, ConnectionError
 
 
 def redis_set(flask):
-    @flask.errorhandler(ConnectionError) #TODO
-    def redis_connect_err(error):
-        return make_response(jsonify({'error': 'redis connection'}), 404)
 
     # Set Redis connection:
-    redis_url = urllib.parse.urlparse('redis://localhost:6379/0')
+    redis_url = urllib.parse.urlparse(Config.REDIS_URL)
     r = StrictRedis(host=redis_url.hostname, port=redis_url.port, password=redis_url.password)
 
     # Test the Redis connection:
