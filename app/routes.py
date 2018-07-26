@@ -3,21 +3,18 @@ from app import flask, tasks
 
 
 @flask.errorhandler(404)
-def not_found():
+def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
 
 
 @flask.route('/submit', methods=['POST'])
 def create_task():
     file_url = request.form.get('url', None)
-    email = request.form.get('email', None)
 
     if file_url in [None, '']:
         abort(400)  # bad request
-    if not file_url.startswith('http://') or len(file_url) < 8:
-        abort(400)
 
-    res = tasks.md5_counting.delay(file_url, email)
+    res = tasks.md5_counting.delay(file_url)
 
     return jsonify({'id': res.id}), 201  # created
 
@@ -40,14 +37,10 @@ def get_task():
 
     elif task.state == u'SUCCESS':  # no err
         response = {
-            'status': 'done',
+            'status':  task.state,
             'md5': task.result['md5'],
-            'url': task.result['url']}
-    elif task.state == u'PENDING':
-        response = {'status': "doesn't exist"}
-    elif task.state in [u'RUNNING', u'RETRY']:
-        response = {'status': 'running'}
-    else:  # state in [u'FAILURE', u'REVOKED']
-        response = {'status': 'failed'}
+        }
+    else:
+        response = {'status': task.state}
 
     return jsonify(response), 200  # ok
