@@ -37,8 +37,8 @@ make
 
 ## Примеры использования:
 
-
-```>>> curl -X POST -d "email=user@example.com&url=http://site.com/file.txt" http://localhost:5000/submit
+```
+>>> curl -X POST -d "email=user@example.com&url=http://site.com/file.txt" http://localhost:5000/submit
 
 {"id":"0e4fac17-f367-4807-8c28-8a059a2f82ac"}
 
@@ -48,6 +48,6 @@ make
 
 >>> curl -X GET http://localhost:5000/check?id=0e4fac17-f367-4807-8c28-8a059a2f82ac
 
-{"md5":"f4afe93ad799484b1d512cc20e93efd1","status":"done","url":"http://site.com/file.txt"}```
-
+{"md5":"f4afe93ad799484b1d512cc20e93efd1","status":"done","url":"http://site.com/file.txt"}
+```
 
